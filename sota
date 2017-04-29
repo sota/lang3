@@ -1,14 +1,15 @@
 #!/bin/bash
 spaces=" |'"
 program="bin/sota"
+python=`which python2`
 commandline=()
 for arg in "$@"; do
     case $arg in
         --pdb)
-        program="python -m pdb src/target.py"
+        program="$python -m pdb src/target.py"
         ;;
         --py)
-        program="python src/target.py"
+        program="$python src/target.py"
         ;;
         *)
         if [[ $arg =~ $spaces ]]; then
@@ -18,6 +19,6 @@ for arg in "$@"; do
         ;;
     esac
 done
-
-eval LD_LIBRARY_PATH="lib:$LD_LIBRARY_PATH" ${program} "${commandline[@]}"
+cmd="LD_LIBRARY_PATH=lib:$LD_LIBRARY_PATH ${program} ${commandline[@]}"
+eval "$cmd"
 exit $?
