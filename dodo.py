@@ -134,3 +134,19 @@ def task_post():
             fmt('PYTHONPATH={SRCDIR} pytest test/post/'),
         ],
     )
+
+def task_tidy():
+    '''
+    clean submods and sota/lang repo
+    '''
+    yield {
+        'name': 'sota/lang',
+        'actions': ['git clean -xfd'],
+    }
+    for submod in SUBMODS:
+        yield {
+            'name': submod,
+            'actions': [
+                fmt('cd {submod} && git reset --hard HEAD && git clean -xfd')
+            ],
+        }
