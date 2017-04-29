@@ -57,3 +57,4 @@ def parse(argv):
     if result:
         print('ERRROR: result =', result)
         #raise CliParseError(result)
+    return args
