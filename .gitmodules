@@ -1,0 +1,9 @@
+[submodule "src/pypy"]
+	path = src/pypy
+	url = ssh://git@github.com/sota/pypy
+[submodule "src/rply"]
+	path = src/rply
+	url = ssh://git@github.com/sota/rply
+[submodule "src/docopt"]
+	path = src/docopt
+	url = ssh://git@github.com/docopt/docopt.cpp
