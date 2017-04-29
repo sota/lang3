@@ -93,7 +93,7 @@ def task_pre():
     '''
     return dict(
         actions=[
-            fmt('PYTHONPATH={SRCDIR} pytest test/pre/'),
+            fmt('PYTHONPATH={SRCDIR} py.test -s -vv test/pre/'),
         ],
     )
 
@@ -131,7 +131,7 @@ def task_post():
     return dict(
         task_dep=['build'],
         actions=[
-            fmt('PYTHONPATH={SRCDIR} pytest test/post/'),
+            fmt('PYTHONPATH={SRCDIR} py.test -s -vv test/post/'),
         ],
     )
 
