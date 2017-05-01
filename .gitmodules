@@ -7,3 +7,9 @@
 [submodule "src/docopt"]
 	path = src/docopt
 	url = ssh://git@github.com/docopt/docopt.cpp
+[submodule "src/colm"]
+	path = src/colm
+	url = ssh://git@github.com/sota/colm
+[submodule "src/ragel"]
+	path = src/ragel
+	url = ssh://git@github.com/sota/ragel
