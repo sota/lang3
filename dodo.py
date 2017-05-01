@@ -132,7 +132,7 @@ def task_colm():
 
 def task_ragel():
     '''
-    build colm binary for use in build
+    build ragel binary for use in build
     '''
     return {
         'file_dep': [DODO],
@@ -148,7 +148,7 @@ def task_ragel():
 
 def task_liblexer():
     '''
-    build lexer library with ragel
+    build so libary for use as sota's lexer
     '''
     return {
         'file_dep': [DODO] + rglob('src/lexer/*.{h,rl,c}'),
@@ -161,9 +161,9 @@ def task_liblexer():
         'clean': [clean_targets],
     }
 
-def task_build():
+def task_sota():
     '''
-    build binary using rpython machinery
+    build sota binary using rpython machinery
     '''
     return dict(
         file_dep=[
@@ -185,7 +185,7 @@ def task_post():
     tests to run after build
     '''
     return dict(
-        task_dep=['build'],
+        task_dep=['sota'],
         actions=[
             fmt('PYTHONPATH={SRCDIR} py.test -s -vv test/post/'),
         ],
