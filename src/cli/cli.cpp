@@ -14,7 +14,7 @@ usage:
     sota [options] [<source>]
 
 options:
-    -h --help     show this screen
+    -h --help     show this help
     --version     show version
 
 source:
