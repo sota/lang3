@@ -10,6 +10,8 @@
 [submodule "src/colm"]
 	path = src/colm
 	url = ssh://git@github.com/sota/colm
+	ignore = dirty
 [submodule "src/ragel"]
 	path = src/ragel
 	url = ssh://git@github.com/sota/ragel
+	ignore = dirty
