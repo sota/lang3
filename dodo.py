@@ -26,11 +26,17 @@ RPYTHON = 'src/pypy/rpython/bin/rpython'
 SRCDIR = fmt('{REPOROOT}/src')
 TARGET = 'target.py'
 VERSION_JSON = 'src/version.json'
+PREDIR = 'test/pre'
+POSTDIR = 'test/post'
 
 DOIT_CONFIG = {
     'verbosity': 2,
     'default_tasks': ['post'],
 }
+
+ENVS = ' '.join([
+    'PYTHONPATH=.:src:src/pypy:$PYTHONPATH',
+])
 
 try:
     J = call('nproc')[1].strip()
@@ -89,15 +95,53 @@ def task_submod():
             'actions': [fmt('git submodule update {submod}')],
         }
 
-def task_pre():
+def task_test():
     '''
     tests to run before build
     '''
     return dict(
         actions=[
-            fmt('PYTHONPATH={SRCDIR} py.test -s -vv test/pre/'),
+            fmt('{ENVS} py.test -s -vv test/pre/'),
         ],
     )
+
+def task_cov():
+    '''
+    run 'py.test --cov=<pyfile> {PREDIR}/<pyfile>'
+    '''
+    def hastests(pyfile):
+        return os.path.exists(os.path.join(PREDIR, pyfile))
+    excludes = [DODO]
+    pyfiles = globs('src/*/*.py') - globs(*excludes)
+    for pyfile in sorted(pyfiles, key=hastests):
+        covcmd = 'py.test -s -vv --cov={pyfile} {PREDIR}/{pyfile}'
+        msgcmd = 'echo "no tests found ({PREDIR}/{pyfile} to run coverage on {pyfile}"'
+        yield {
+            'name': pyfile,
+            'task_dep': ['submod', 'version:src/version.py'],
+            'actions': [fmt(covcmd if hastests(pyfile) else msgcmd)],
+        }
+
+def task_lint():
+    '''
+    run pylint on all pyfiles
+    '''
+    excludes = ['src/doit/dodo.py']
+    for pyfile in globs('*.py', 'src/*/*.py', fmt('{PREDIR}/*/*.py')) - globs(*excludes):
+        yield {
+            'name': pyfile,
+            'task_dep': ['submod', 'version:src/version.py'],
+            'actions': [fmt('{ENVS} pylint -E -j4 --rcfile {PREDIR}/pylint.rc {pyfile}')],
+        }
+
+def task_pre():
+    '''
+    run pre tests: pytest, pycov and pylint
+    '''
+    return {
+        'task_dep': ['test', 'cov'],
+        'actions': ['echo "sota pre tests successfully tested!"'],
+    }
 
 def task_libcli():
     '''
@@ -187,7 +231,7 @@ def task_post():
     return dict(
         task_dep=['sota'],
         actions=[
-            fmt('PYTHONPATH={SRCDIR} py.test -s -vv test/post/'),
+            fmt('{ENVS} py.test -s -vv test/post/'),
         ],
     )
 
