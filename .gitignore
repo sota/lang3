@@ -125,8 +125,8 @@ __pycache__
 *.app
 
 # generated version files
-src/version.h
-src/version.py
+src/cli/version.h
+src/sota/version.py
 
 **/test
 tests/**

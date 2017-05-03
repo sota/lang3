@@ -100,7 +100,7 @@ def task_test():
     tests to run before build
     '''
     return dict(
-        task_dep=['submod:src/pypy', 'version:src/version.py'],
+        task_dep=['submod:src/pypy', 'version:src/sota/version.py'],
         actions=[
             fmt('{ENVS} py.test -s -vv test/pre/'),
         ],
@@ -119,7 +119,7 @@ def task_cov():
         msgcmd = 'echo "no tests found ({PREDIR}/{pyfile} to run coverage on {pyfile}"'
         yield dict(
             name=pyfile,
-            task_dep=['submod', 'version:src/version.py'],
+            task_dep=['submod', 'version:src/sota/version.py'],
             actions=[fmt(covcmd if hastests(pyfile) else msgcmd)],
         )
 
@@ -131,7 +131,7 @@ def task_lint():
     for pyfile in globs('*.py', 'src/*/*.py', fmt('{PREDIR}/*/*.py')) - globs(*excludes):
         yield dict(
             name=pyfile,
-            task_dep=['submod', 'version:src/version.py'],
+            task_dep=['submod', 'version:src/sota/version.py'],
             actions=[fmt('{ENVS} pylint -E -j4 --rcfile {PREDIR}/pylint.rc {pyfile}')],
         )
 
@@ -197,7 +197,7 @@ def task_liblexer():
     '''
     return {
         'file_dep': [DODO] + rglob('src/lexer/*.{h,rl,c}'),
-        'task_dep': ['pre', 'ragel', 'version:src/version.h'],
+        'task_dep': ['pre', 'ragel', 'version:src/cli/version.h'],
         'actions': [
             fmt('cd src/lexer && LD_LIBRARY_PATH={REPOROOT}/lib make -j {J} RAGEL={REPOROOT}/{RAGEL}'),
             fmt('install -C -D src/lexer/liblexer.so {LIBDIR}/liblexer.so'),
