@@ -4,9 +4,12 @@
 import sys
 import cli
 
+from sota.lexer import Lexer
+
 def entry_point(argv):
     args = cli.parse(argv)
     if '<source>' in args:
+        lexer = Lexer()
         print('source found')
     else:
         print('repl time')
