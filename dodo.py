@@ -100,6 +100,7 @@ def task_test():
     tests to run before build
     '''
     return dict(
+        task_dep=['submod:src/pypy', 'version:src/version.py'],
         actions=[
             fmt('{ENVS} py.test -s -vv test/pre/'),
         ],
@@ -116,11 +117,11 @@ def task_cov():
     for pyfile in sorted(pyfiles, key=hastests):
         covcmd = 'py.test -s -vv --cov={pyfile} {PREDIR}/{pyfile}'
         msgcmd = 'echo "no tests found ({PREDIR}/{pyfile} to run coverage on {pyfile}"'
-        yield {
-            'name': pyfile,
-            'task_dep': ['submod', 'version:src/version.py'],
-            'actions': [fmt(covcmd if hastests(pyfile) else msgcmd)],
-        }
+        yield dict(
+            name=pyfile,
+            task_dep=['submod', 'version:src/version.py'],
+            actions=[fmt(covcmd if hastests(pyfile) else msgcmd)],
+        )
 
 def task_lint():
     '''
@@ -128,11 +129,11 @@ def task_lint():
     '''
     excludes = ['src/doit/dodo.py']
     for pyfile in globs('*.py', 'src/*/*.py', fmt('{PREDIR}/*/*.py')) - globs(*excludes):
-        yield {
-            'name': pyfile,
-            'task_dep': ['submod', 'version:src/version.py'],
-            'actions': [fmt('{ENVS} pylint -E -j4 --rcfile {PREDIR}/pylint.rc {pyfile}')],
-        }
+        yield dict(
+            name=pyfile,
+            task_dep=['submod', 'version:src/version.py'],
+            actions=[fmt('{ENVS} pylint -E -j4 --rcfile {PREDIR}/pylint.rc {pyfile}')],
+        )
 
 def task_pre():
     '''
