@@ -95,12 +95,59 @@ def task_submod():
             actions=[fmt('git submodule update {submod}')],
         )
 
+def task_colm():
+    '''
+    build colm binary for use in build
+    '''
+    return dict(
+        file_dep=[DODO],
+        task_dep=['submod:src/colm'],
+        actions=[
+            'cd src/colm && autoreconf -f -i',
+            fmt('cd src/colm && ./configure --prefix={REPOROOT}'),
+            'cd src/colm && make && make install',
+        ],
+        targets=[COLM],
+        clean=[clean_targets],
+    )
+
+def task_ragel():
+    '''
+    build ragel binary for use in build
+    '''
+    return dict(
+        file_dep=[DODO],
+        task_dep=['submod:src/ragel', 'colm'],
+        actions=[
+            'cd src/ragel && autoreconf -f -i',
+            fmt('cd src/ragel && ./configure --prefix={REPOROOT} --with-colm={REPOROOT} --disable-manual'),
+            'cd src/ragel && make && make install',
+        ],
+        targets=[RAGEL],
+        clean=[clean_targets],
+    )
+
+def task_liblexer():
+    '''
+    build so libary for use as sota's lexer
+    '''
+    return dict(
+        file_dep=[DODO] + rglob('src/lexer/*.{h,rl,c}'),
+        task_dep=['ragel', 'version:src/cli/version.h'],
+        actions=[
+            fmt('cd src/lexer && LD_LIBRARY_PATH={REPOROOT}/lib make -j {J} RAGEL={REPOROOT}/{RAGEL}'),
+            fmt('install -C -D src/lexer/liblexer.so {LIBDIR}/liblexer.so'),
+        ],
+        targets=['src/lexer/lexer.cpp', 'src/lexer/test', fmt('{LIBDIR}/liblexer.so')],
+        clean=[clean_targets],
+    )
+
 def task_test():
     '''
     tests to run before build
     '''
     return dict(
-        task_dep=['submod:src/pypy', 'version:src/sota/version.py'],
+        task_dep=['submod:src/pypy', 'version:src/sota/version.py', 'liblexer'],
         actions=[
             fmt('{ENVS} py.test -s -vv test/pre/'),
         ],
@@ -140,7 +187,7 @@ def task_pre():
     run pre tests: pytest, pycov and pylint
     '''
     return {
-        'task_dep': ['test', 'cov'],
+        'task_dep': ['test'],
         'actions': ['echo "sota pre tests successfully tested!"'],
     }
 
@@ -159,53 +206,6 @@ def task_libcli():
         clean=[clean_targets],
     )
 
-def task_colm():
-    '''
-    build colm binary for use in build
-    '''
-    return dict(
-        file_dep=[DODO],
-        task_dep=['pre', 'submod:src/colm'],
-        actions=[
-            'cd src/colm && autoreconf -f -i',
-            fmt('cd src/colm && ./configure --prefix={REPOROOT}'),
-            'cd src/colm && make && make install',
-        ],
-        targets=[COLM],
-        clean=[clean_targets],
-    )
-
-def task_ragel():
-    '''
-    build ragel binary for use in build
-    '''
-    return dict(
-        file_dep=[DODO],
-        task_dep=['pre', 'submod:src/ragel', 'colm'],
-        actions=[
-            'cd src/ragel && autoreconf -f -i',
-            fmt('cd src/ragel && ./configure --prefix={REPOROOT} --with-colm={REPOROOT} --disable-manual'),
-            'cd src/ragel && make && make install',
-        ],
-        targets=[RAGEL],
-        clean=[clean_targets],
-    )
-
-def task_liblexer():
-    '''
-    build so libary for use as sota's lexer
-    '''
-    return dict(
-        file_dep=[DODO] + rglob('src/lexer/*.{h,rl,c}'),
-        task_dep=['pre', 'ragel', 'version:src/cli/version.h'],
-        actions=[
-            fmt('cd src/lexer && LD_LIBRARY_PATH={REPOROOT}/lib make -j {J} RAGEL={REPOROOT}/{RAGEL}'),
-            fmt('install -C -D src/lexer/liblexer.so {LIBDIR}/liblexer.so'),
-        ],
-        targets=['src/lexer/lexer.cpp', 'src/lexer/test', fmt('{LIBDIR}/liblexer.so')],
-        clean=[clean_targets],
-    )
-
 def task_sota():
     '''
     build sota binary using rpython machinery
@@ -216,7 +216,7 @@ def task_sota():
             fmt('{LIBDIR}/libcli.so'),
             fmt('{LIBDIR}/liblexer.so'),
         ] + rglob(fmt('{SRCDIR}/*.py')),
-        task_dep=['pre', 'libcli'],
+        task_dep=['pre', 'libcli', 'liblexer'],
         actions=[
             fmt('mkdir -p {BINDIR}'),
             fmt('{PYTHON} -B {RPYTHON} --no-pdb --output {BINDIR}/sota {SRCDIR}/{TARGET}'),
