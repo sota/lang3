@@ -129,7 +129,6 @@ src/cli/version.h
 src/sota/version.py
 
 **/test
-tests/**
 
 # unix dirs
 bin/
