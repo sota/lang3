@@ -4,6 +4,7 @@ shell utilities
 import os
 import re
 import sys
+import glob
 import fnmatch
 from subprocess import Popen, PIPE, CalledProcessError, check_output
 from contextlib import contextmanager
@@ -78,3 +79,8 @@ def rglob(pattern):
             matches.append(os.path.join(r, f))
     return matches
 
+def globs(*paths):
+    '''
+    returns a set of all paths glob-matched
+    '''
+    return set([item for item in [glob.glob(path) for path in paths] for item in item])
