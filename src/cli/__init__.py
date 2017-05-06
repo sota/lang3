@@ -5,9 +5,7 @@ import os
 import sys
 SCRIPT_PATH, BASENAME = os.path.split(os.path.realpath(__file__) )
 SCRIPT_NAME, SCRIPT_EXT = os.path.splitext(os.path.basename(BASENAME) )
-sys.path.insert(0, os.path.join(SCRIPT_PATH, 'cli'))
-sys.path.insert(0, os.path.join(SCRIPT_PATH, 'pypy'))
-os.environ['PYTHONPATH'] = 'src:src/pypy'
+sys.path.insert(0, os.path.join(SCRIPT_PATH, '../pypy'))
 
 from rpython.rtyper.lltypesystem import rffi
 from rpython.translator.tool.cbuild import ExternalCompilationInfo
