@@ -4,21 +4,19 @@
 import os
 import re
 import sys
-import glob
 import json
 sys.dont_write_bytecode = True
 
 from doit.task import clean_targets
 from utils.fmt import fmt
 from utils.git import subs2shas
-from utils.shell import call, rglob, which
+from utils.shell import call, rglob, globs, which
 from utils.version import SotaVersionWriter
 
 DODO = 'dodo.py'
 COLM = 'bin/colm'
 RAGEL = 'bin/ragel'
 REPOROOT = os.path.dirname(os.path.abspath(__file__))
-SUBMODS = subs2shas().keys()
 BINDIR = fmt('{REPOROOT}/bin')
 LIBDIR = fmt('{REPOROOT}/lib')
 PYTHON = which('python2')
@@ -51,12 +49,6 @@ except: #pylint: disable=bare-except
     except: #pylint: disable=bare-except
         SOTA_VERSION = 'UNKNOWN'
 
-def globs(*paths):
-    '''
-    returns a set of all paths glob-matched
-    '''
-    return set([item for item in [glob.glob(path) for path in paths] for item in item])
-
 def task_version():
     '''
     create version files from version.json template
@@ -70,29 +62,21 @@ def task_version():
             uptodate=[svw.uptodate],
         )
 
-def is_initd():
-    return all([call(fmt('git config --get submodule.{submod}.url'), throw=False)[1] for submod in SUBMODS])
-
-def task_init():
-    '''
-    run git submodule init on submods
-    '''
-    return dict(
-        actions=['git submodule init ' + ' '.join(SUBMODS)],
-        targets=['.git/config'],
-        uptodate=[is_initd],
-    )
-
 def task_submod():
     '''
-    run git submodule update on submods
+    run ensure git submodules are up to date
     '''
-    for submod in SUBMODS:
+    SYMS = [
+        '+',
+        '-',
+    ]
+    for submod, sha1hash in subs2shas().items():
         yield dict(
             name=submod,
-            file_dep=[DODO],
-            task_dep=['init'],
-            actions=[fmt('git submodule update {submod}')],
+            actions=[
+                fmt('git submodule update --init {submod}')
+            ],
+            uptodate=[all(map(lambda sym: not sha1hash.startswith(sym), SYMS))],
         )
 
 def task_colm():
@@ -100,13 +84,13 @@ def task_colm():
     build colm binary for use in build
     '''
     return dict(
-        file_dep=[DODO],
         task_dep=['submod:src/colm'],
         actions=[
             'cd src/colm && autoreconf -f -i',
             fmt('cd src/colm && ./configure --prefix={REPOROOT}'),
             'cd src/colm && make && make install',
         ],
+        #uptodate=[fmt('test -f {COLM}')],
         targets=[COLM],
         clean=[clean_targets],
     )
@@ -116,13 +100,13 @@ def task_ragel():
     build ragel binary for use in build
     '''
     return dict(
-        file_dep=[DODO],
         task_dep=['submod:src/ragel', 'colm'],
         actions=[
             'cd src/ragel && autoreconf -f -i',
             fmt('cd src/ragel && ./configure --prefix={REPOROOT} --with-colm={REPOROOT} --disable-manual'),
             'cd src/ragel && make && make install',
         ],
+        #uptodate=[fmt('test -f {RAGEL}')],
         targets=[RAGEL],
         clean=[clean_targets],
     )
@@ -132,13 +116,15 @@ def task_liblexer():
     build so libary for use as sota's lexer
     '''
     return dict(
-        file_dep=[DODO] + rglob('src/lexer/*.{h,rl,c}'),
+        file_dep=['src/sota/lexer.py'] + rglob('src/lexer/*.{h,rl,c}'),
         task_dep=['ragel', 'version:src/cli/version.h'],
         actions=[
             fmt('cd src/lexer && LD_LIBRARY_PATH={REPOROOT}/lib make -j {J} RAGEL={REPOROOT}/{RAGEL}'),
             fmt('install -C -D src/lexer/liblexer.so {LIBDIR}/liblexer.so'),
         ],
-        targets=['src/lexer/lexer.cpp', 'src/lexer/test', fmt('{LIBDIR}/liblexer.so')],
+        #uptodate=[fmt('test -f {LIBDIR}/liblexer.so')],
+        #targets=['src/lexer/lexer.cpp', 'src/lexer/test', fmt('{LIBDIR}/liblexer.so')],
+        targets=[fmt('{LIBDIR}/liblexer.so')],
         clean=[clean_targets],
     )
 
@@ -147,7 +133,7 @@ def task_test():
     tests to run before build
     '''
     return dict(
-        task_dep=['submod:src/pypy', 'version:src/sota/version.py', 'liblexer'],
+        task_dep=['version:src/sota/version.py', 'liblexer'],
         actions=[
             fmt('{ENVS} py.test -s -vv {PREDIR}'),
         ],
