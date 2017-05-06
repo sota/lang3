@@ -2,7 +2,7 @@
 spaces=" |'"
 program="bin/sota"
 python=`which python2`
-commandline=()
+args=()
 for arg in "$@"; do
     case $arg in
         --pdb)
@@ -15,10 +15,10 @@ for arg in "$@"; do
         if [[ $arg =~ $spaces ]]; then
             arg="'$arg'"
         fi
-        commandline+=("${arg}")
+        args+=("${arg}")
         ;;
     esac
 done
-cmd="LD_LIBRARY_PATH=lib:$LD_LIBRARY_PATH ${program} ${commandline[@]}"
+cmd="LD_LIBRARY_PATH=lib:$LD_LIBRARY_PATH ${program} ${args[@]}"
 eval "$cmd"
 exit $?
