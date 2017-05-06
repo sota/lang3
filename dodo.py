@@ -26,6 +26,7 @@ TARGET = 'target.py'
 VERSION_JSON = 'src/version.json'
 PREDIR = 'tests/pre'
 POSTDIR = 'tests/post'
+SUBS2SHAS = subs2shas()
 
 DOIT_CONFIG = {
     'verbosity': 2,
@@ -70,7 +71,7 @@ def task_submod():
         '+',
         '-',
     ]
-    for submod, sha1hash in subs2shas().items():
+    for submod, sha1hash in SUBS2SHAS.items():
         yield dict(
             name=submod,
             actions=[
@@ -241,7 +242,7 @@ def task_tidy():
         name='sota/lang',
         actions=['git clean -xfd'],
     )
-    for submod in SUBMODS:
+    for submod in SUBS2SHAS.keys():
         yield dict(
             name=submod,
             actions=[
