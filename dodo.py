@@ -91,7 +91,7 @@ def task_colm():
             fmt('cd src/colm && ./configure --prefix={REPOROOT}'),
             'cd src/colm && make && make install',
         ],
-        #uptodate=[fmt('test -f {COLM}')],
+        uptodate=[True],
         targets=[COLM],
         clean=[clean_targets],
     )
@@ -107,7 +107,7 @@ def task_ragel():
             fmt('cd src/ragel && ./configure --prefix={REPOROOT} --with-colm={REPOROOT} --disable-manual'),
             'cd src/ragel && make && make install',
         ],
-        #uptodate=[fmt('test -f {RAGEL}')],
+        uptodate=[True],
         targets=[RAGEL],
         clean=[clean_targets],
     )
