@@ -26,8 +26,8 @@ RPYTHON = 'src/pypy/rpython/bin/rpython'
 SRCDIR = fmt('{REPOROOT}/src')
 TARGET = 'target.py'
 VERSION_JSON = 'src/version.json'
-PREDIR = 'test/pre'
-POSTDIR = 'test/post'
+PREDIR = 'tests/pre'
+POSTDIR = 'tests/post'
 
 DOIT_CONFIG = {
     'verbosity': 2,
@@ -149,7 +149,7 @@ def task_test():
     return dict(
         task_dep=['submod:src/pypy', 'version:src/sota/version.py', 'liblexer'],
         actions=[
-            fmt('{ENVS} py.test -s -vv test/pre/'),
+            fmt('{ENVS} py.test -s -vv {PREDIR}'),
         ],
     )
 
@@ -232,8 +232,19 @@ def task_post():
     return dict(
         task_dep=['sota'],
         actions=[
-            fmt('{ENVS} py.test -s -vv test/post/'),
+            fmt('{ENVS} py.test -s -vv {POSTDIR}'),
         ],
+    )
+
+def task_rmcache():
+    '''
+    recursively delete python cache files
+    '''
+    return dict(
+        actions=[
+            'find . -depth -name __pycache__ -type d -exec rm -r "{}" \;',
+            'find . -depth -name "*.pyc" -type f -exec rm -r "{}" \;',
+        ]
     )
 
 def task_tidy():
