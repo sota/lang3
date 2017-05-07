@@ -13,19 +13,21 @@ from utils.git import subs2shas
 from utils.shell import call, rglob, globs, which
 from utils.version import SotaVersionWriter
 
+REPOROOT = os.path.dirname(os.path.abspath(__file__))
+PREDIR = fmt('{REPOROOT}/tests/pre')
+POSTDIR = fmt('{REPOROOT}/tests/post')
+BINDIR = fmt('{REPOROOT}/bin')
+LIBDIR = fmt('{REPOROOT}/lib')
+SRCDIR = fmt('{REPOROOT}/src')
+SOTADIR = fmt('{SRCDIR}/sota')
+
 DODO = 'dodo.py'
 COLM = 'bin/colm'
 RAGEL = 'bin/ragel'
-REPOROOT = os.path.dirname(os.path.abspath(__file__))
-BINDIR = fmt('{REPOROOT}/bin')
-LIBDIR = fmt('{REPOROOT}/lib')
 PYTHON = which('python2')
 RPYTHON = 'src/pypy/rpython/bin/rpython'
-SRCDIR = fmt('{REPOROOT}/src')
 TARGET = 'target.py'
 VERSION_JSON = 'src/version.json'
-PREDIR = 'tests/pre'
-POSTDIR = 'tests/post'
 SUBS2SHAS = subs2shas()
 
 DOIT_CONFIG = {
@@ -201,12 +203,14 @@ def task_sota():
             DODO,
             fmt('{LIBDIR}/libcli.so'),
             fmt('{LIBDIR}/liblexer.so'),
-        ] + rglob(fmt('{SRCDIR}/*.py')),
+            fmt('{SRCDIR}/{TARGET}'),
+        ] + rglob(fmt('{SOTADIR}/*.py')),
         task_dep=['pre', 'libcli', 'liblexer'],
         actions=[
             fmt('mkdir -p {BINDIR}'),
             fmt('{PYTHON} -B {RPYTHON} --no-pdb --output {BINDIR}/sota {SRCDIR}/{TARGET}'),
         ],
+        uptodate=[True],
         targets=[fmt('{BINDIR}/sota')],
         clean=[clean_targets],
     )
