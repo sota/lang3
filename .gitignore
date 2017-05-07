@@ -135,3 +135,5 @@ bin/
 lib/
 include/
 share/
+
+src/lexer/lexer.cpp
