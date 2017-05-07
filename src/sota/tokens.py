@@ -1,9 +1,16 @@
-
-from rpython.rtyper.lltypesystem import rffi, lltype
+'''
+sota.token
+'''
 
 class Token(object): #pylint: disable=too-few-public-methods
+    '''
+    Token
+    '''
 
     def __init__(self, name, value, kind, line, pos, skip):
+        '''
+        init
+        '''
         self.name = name
         self.value = value
         self.kind = kind
@@ -12,6 +19,9 @@ class Token(object): #pylint: disable=too-few-public-methods
         self.skip = skip
 
     def to_str(self):
+        '''
+        to_str
+        '''
         return '[name=%s value=%s kind=%d line=%d pos=%d skip=%s]' % (
             self.name,
             self.value,
@@ -21,6 +31,9 @@ class Token(object): #pylint: disable=too-few-public-methods
             self.skip)
 
     def is_name(self, *names):
+        '''
+        is_name
+        '''
         for name in list(names):
             if name == self.name:
                 return True

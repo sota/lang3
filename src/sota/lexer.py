@@ -1,3 +1,6 @@
+'''
+sota.lexer
+'''
 
 import os
 from rpython.rtyper.lltypesystem import rffi, lltype
@@ -6,7 +9,6 @@ from rpython.translator.tool.cbuild import ExternalCompilationInfo
 from sota.tokens import Token
 
 #pylint: disable=invalid-name
-
 CTOKEN = rffi.CStruct(
     'CToken',
     ('start', rffi.LONG),
@@ -20,9 +22,15 @@ CTOKENP = rffi.CArrayPtr(CTOKEN)
 CTOKENPP = rffi.CArrayPtr(CTOKENP)
 
 def deref(obj):
+    '''
+    deref
+    '''
     return obj[0]
 
 def escape(old):
+    '''
+    escape
+    '''
     new = ''
     for char in old:
         if char == '\n':
@@ -48,14 +56,25 @@ c_scan = rffi.llexternal( #pylint: disable=invalid-name
     compilation_info=lexer_eci)
 
 class LookaheadBeyondEndOfTokens(Exception):
+    '''
+    LookaheadBeyondEndOfTokens
+    '''
     pass
 
 class NeedTokensOrSource(Exception):
+    '''
+    NeedTokensOrSource
+    '''
     pass
 
 class Lexer(object):
-
+    '''
+    Lexer
+    '''
     def __init__(self):
+        '''
+        init
+        '''
         self.source = None
         self.tokens = []
         self.index = 0
@@ -69,7 +88,9 @@ class Lexer(object):
             self.kind2name[c] = chr(c)
 
     def scan(self, source):
-
+        '''
+        scan
+        '''
         self.index = 0
         self.source = source
         del self.tokens[:]
@@ -92,6 +113,9 @@ class Lexer(object):
         return self.tokens
 
     def lookahead(self, distance, expect=None, skips=False):
+        '''
+        lookahead
+        '''
         index = self.index
         token = None
         while distance:
@@ -107,16 +131,25 @@ class Lexer(object):
         return token, distance, (token.kind == expect) if token and expect else expect
 
     def lookahead1(self, expect=None):
+        '''
+        lookahead1
+        '''
         return self.lookahead(1, expect)
 
     def lookahead2(self, expect=None):
+        '''
+        lookahead2
+        '''
         return self.lookahead(2, expect)
 
     def consume(self, *expects):
+        '''
+        consume
+        '''
         token, distance, _ = self.lookahead1()
         if not token:
             raise Exception
-        if len(expects):
+        if expects:
             for expect in expects:
                 if expect == token.name:
                     self.index += distance
@@ -124,4 +157,3 @@ class Lexer(object):
             return None
         self.index += distance
         return token
-
