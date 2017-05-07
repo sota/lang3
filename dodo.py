@@ -123,8 +123,7 @@ def task_liblexer():
             fmt('cd src/lexer && LD_LIBRARY_PATH={REPOROOT}/lib make -j {J} RAGEL={REPOROOT}/{RAGEL}'),
             fmt('install -C -D src/lexer/liblexer.so {LIBDIR}/liblexer.so'),
         ],
-        #uptodate=[fmt('test -f {LIBDIR}/liblexer.so')],
-        #targets=['src/lexer/lexer.cpp', 'src/lexer/test', fmt('{LIBDIR}/liblexer.so')],
+        uptodate=[True],
         targets=[fmt('{LIBDIR}/liblexer.so')],
         clean=[clean_targets],
     )
