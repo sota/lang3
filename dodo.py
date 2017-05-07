@@ -41,15 +41,15 @@ ENVS = ' '.join([
 
 try:
     J = call('nproc')[1].strip()
-except: #pylint: disable=bare-except
+except:
     J = 1
 
 try:
     SOTA_VERSION = open('VERSION').read().strip()
-except: #pylint: disable=bare-except
+except:
     try:
         SOTA_VERSION = call('git describe')[1].strip()
-    except: #pylint: disable=bare-except
+    except:
         SOTA_VERSION = 'UNKNOWN'
 
 def task_version():
@@ -130,54 +130,55 @@ def task_liblexer():
         clean=[clean_targets],
     )
 
-def task_test():
+def pre_pylint():
     '''
-    tests to run before build
+    run pylint before the build
     '''
     return dict(
+        name='pylint',
+        task_dep=[
+            'submod',
+            'version:src/sota/version.py',
+        ],
+        actions=[
+            fmt('{ENVS} pylint -j{J} --rcfile {PREDIR}/pylint.rc {SOTADIR}'),
+        ]
+    )
+
+def pre_pytest():
+    '''
+    run pytest before the build
+    '''
+    return dict(
+        name='pytest',
         task_dep=['version:src/sota/version.py', 'liblexer'],
         actions=[
             fmt('{ENVS} py.test -s -vv {PREDIR}'),
         ],
     )
 
-def task_cov():
+def pre_pycov():
     '''
-    run 'py.test --cov=<pyfile> {PREDIR}/<pyfile>'
+    run pycov before the build
     '''
-    def hastests(pyfile):
-        return os.path.exists(os.path.join(PREDIR, pyfile))
-    excludes = [DODO]
-    pyfiles = globs('src/*/*.py') - globs(*excludes)
-    for pyfile in sorted(pyfiles, key=hastests):
-        covcmd = 'py.test -s -vv --cov={pyfile} {PREDIR}/{pyfile}'
-        msgcmd = 'echo "no tests found ({PREDIR}/{pyfile} to run coverage on {pyfile}"'
-        yield dict(
-            name=pyfile,
-            task_dep=['submod', 'version:src/sota/version.py'],
-            actions=[fmt(covcmd if hastests(pyfile) else msgcmd)],
-        )
-
-def task_lint():
-    '''
-    run pylint on all pyfiles
-    '''
-    excludes = ['src/doit/dodo.py']
-    for pyfile in globs('*.py', 'src/*/*.py', fmt('{PREDIR}/*/*.py')) - globs(*excludes):
-        yield dict(
-            name=pyfile,
-            task_dep=['submod', 'version:src/sota/version.py'],
-            actions=[fmt('{ENVS} pylint -E -j4 --rcfile {PREDIR}/pylint.rc {pyfile}')],
-        )
+    return dict(
+        name='pycov',
+        task_dep=[
+            'submod',
+            'version:src/sota/version.py',
+        ],
+        actions=[
+            fmt('{ENVS} py.test -s -vv --cov={SOTADIR} {PREDIR}'),
+        ]
+    )
 
 def task_pre():
     '''
-    run pre tests: pytest, pycov and pylint
+    run tasks before the build: pylint, pytest, pycov
     '''
-    return {
-        'task_dep': ['test'],
-        'actions': ['echo "sota pre tests successfully tested!"'],
-    }
+    yield pre_pylint()
+    yield pre_pytest()
+    yield pre_pycov()
 
 def task_libcli():
     '''
@@ -215,16 +216,23 @@ def task_sota():
         clean=[clean_targets],
     )
 
-def task_post():
+def post_pytest():
     '''
-    tests to run after build
+    run pytest after the build
     '''
     return dict(
+        name='pytest',
         task_dep=['sota'],
         actions=[
             fmt('{ENVS} py.test -s -vv {POSTDIR}'),
         ],
     )
+
+def task_post():
+    '''
+    run tasks after the build: pytest
+    '''
+    yield post_pytest()
 
 def task_rmcache():
     '''
