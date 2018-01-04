@@ -166,6 +166,7 @@ def pre_pycov():
         task_dep=[
             'submod',
             'version:src/sota/version.py',
+            'liblexer',
         ],
         actions=[
             fmt('{ENVS} py.test -s -vv --cov={SOTADIR} {PREDIR}'),
