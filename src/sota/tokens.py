@@ -30,6 +30,14 @@ class Token(object): #pylint: disable=too-few-public-methods
             self.pos,
             self.skip)
 
+    def to_repr(self):
+        '''
+        to_repr
+        '''
+        return '[%s %s]' % (
+            self.name,
+            self.value)
+
     def is_name(self, *names):
         '''
         is_name
