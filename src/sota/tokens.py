@@ -22,21 +22,23 @@ class Token(object): #pylint: disable=too-few-public-methods
         '''
         to_str
         '''
-        return '[name=%s value=%s kind=%d line=%d pos=%d skip=%s]' % (
+        return '[%s %s %s:%s]' % (
+            self.name,
+            self.value,
+            self.line,
+            self.pos)
+
+    def to_repr(self):
+        '''
+        to_repr
+        '''
+        return 'Token(name=%s value=%s kind=%d line=%d pos=%d skip=%s)' % (
             self.name,
             self.value,
             self.kind,
             self.line,
             self.pos,
             self.skip)
-
-    def to_repr(self):
-        '''
-        to_repr
-        '''
-        return '[%s %s]' % (
-            self.name,
-            self.value)
 
     def is_name(self, *names):
         '''
