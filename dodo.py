@@ -4,9 +4,9 @@
 import os
 import re
 import sys
-import json
 sys.dont_write_bytecode = True
 
+from ruamel import yaml
 from doit.task import clean_targets
 from utils.fmt import fmt
 from utils.git import subs2shas
@@ -28,6 +28,7 @@ PYTHON = which('python2')
 RPYTHON = 'src/pypy/rpython/bin/rpython'
 TARGET = 'target.py'
 VERSION_JSON = 'src/version.json'
+VERSION_YML = 'src/version.yml'
 SUBS2SHAS = subs2shas()
 
 DOIT_CONFIG = {
@@ -56,7 +57,7 @@ def task_version():
     '''
     create version files from version.json template
     '''
-    versionfiles = json.load(open(VERSION_JSON))
+    versionfiles = yaml.safe_load(open(VERSION_YML))
     for filename, contents in versionfiles.items():
         svw = SotaVersionWriter(filename, fmt(contents))
         yield dict(
